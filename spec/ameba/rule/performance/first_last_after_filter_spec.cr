@@ -5,14 +5,13 @@ module Ameba::Rule::Performance
 
   describe FirstLastAfterFilter do
     it "passes if there is no potential performance improvements" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         [1, 2, 3].select { |e| e > 1 }
         [1, 2, 3].reverse.select { |e| e > 1 }
         [1, 2, 3].reverse.last
         [1, 2, 3].reverse.first
         [1, 2, 3].reverse.first
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is select followed by last" do
@@ -23,10 +22,9 @@ module Ameba::Rule::Performance
     end
 
     it "does not report if source is a spec" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL, "source_spec.cr"
         [1, 2, 3].select { |e| e > 2 }.last
-      ), "source_spec.cr"
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is select followed by last?" do
@@ -44,10 +42,9 @@ module Ameba::Rule::Performance
     end
 
     it "does not report if there is selected followed by first with arguments" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         [1, 2, 3].select { |n| n % 2 == 0 }.first(2)
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is select followed by first?" do
@@ -58,21 +55,19 @@ module Ameba::Rule::Performance
     end
 
     it "does not report if there is select followed by any other call" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         [1, 2, 3].select { |e| e > 2 }.size
         [1, 2, 3].select { |e| e > 2 }.any?
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     context "properties" do
       it "allows to configure object_call_names" do
-        source = Source.new %(
-          [1, 2, 3].select { |e| e > 2 }.first
-        )
         rule = Rule::Performance::FirstLastAfterFilter.new
         rule.filter_names = %w(reject)
-        rule.catch(source).should be_valid
+        expect_no_issues rule, <<-CRYSTAL
+          [1, 2, 3].select { |e| e > 2 }.first
+          CRYSTAL
       end
     end
 
@@ -123,10 +118,9 @@ module Ameba::Rule::Performance
 
     context "macro" do
       it "doesn't report in macro scope" do
-        source = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           {{[1, 2, 3].select { |e| e > 2  }.last }}
-        )
-        subject.catch(source).should be_valid
+          CRYSTAL
       end
     end
 

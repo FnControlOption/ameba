@@ -5,7 +5,7 @@ module Ameba::Rule::Lint
     subject = ShadowingOuterLocalVar.new
 
     it "doesn't report if there is no shadowing" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def some_method
           foo = 1
 
@@ -17,9 +17,7 @@ module Ameba::Rule::Lint
 
           -> (bar : String) {}
         end
-      )
-
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is a shadowing in a block" do
@@ -35,11 +33,10 @@ module Ameba::Rule::Lint
     end
 
     it "does not report outer vars declared below shadowed block" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         methods = klass.methods.select { |m| m.annotation(MyAnn) }
         m = methods.last
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is a shadowing in a proc" do
@@ -112,28 +109,26 @@ module Ameba::Rule::Lint
     end
 
     it "doesn't report if an outer var is reassigned in a block" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def foo
           foo = 1
           3.times do |i|
             foo = 2
           end
         end
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if an argument is a black hole '_'" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         _ = 1
         3.times do |_|
         end
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if it shadows record type declaration" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         class FooBar
           record Foo, index : String
 
@@ -142,12 +137,11 @@ module Ameba::Rule::Lint
             end
           end
         end
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if it shadows throwaway arguments" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         data = [{1, "a"}, {2, "b"}, {3, "c"}]
 
         data.each do |_, string|
@@ -155,18 +149,16 @@ module Ameba::Rule::Lint
             puts string, number
           end
         end
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "does not report if argument shadows an ivar assignment" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def bar(@foo)
           @foo.try do |foo|
           end
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports rule, location and message" do
@@ -185,7 +177,7 @@ module Ameba::Rule::Lint
 
     context "macro" do
       it "does not report shadowed vars in outer scope" do
-        source = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           macro included
             def foo
               {% for ivar in instance_vars %}
@@ -197,12 +189,11 @@ module Ameba::Rule::Lint
               {% instance_vars.reject { |ivar| ivar } %}
             end
           end
-        )
-        subject.catch(source).should be_valid
+          CRYSTAL
       end
 
       it "does not report shadowed vars in macro within the same scope" do
-        source = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           {% methods = klass.methods.select { |m| m.annotation(MyAnn) } %}
 
           {% for m, m_idx in methods %}
@@ -210,12 +201,11 @@ module Ameba::Rule::Lint
               {% d %}
             {% end %}
           {% end %}
-        )
-        subject.catch(source).should be_valid
+          CRYSTAL
       end
 
       it "does not report shadowed vars within nested macro" do
-        source = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           module Foo
             macro included
               def foo
@@ -233,12 +223,11 @@ module Ameba::Rule::Lint
               end
             end
           end
-        )
-        subject.catch(source).should be_valid
+          CRYSTAL
       end
 
       it "does not report scoped vars to MacroFor" do
-        source = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           struct Test
             def test
               {% for ivar in @type.instance_vars %}
@@ -248,8 +237,7 @@ module Ameba::Rule::Lint
               {% ["a", "b"].map { |ivar| puts ivar } %}
             end
           end
-        )
-        subject.catch(source).should be_valid
+          CRYSTAL
       end
     end
   end

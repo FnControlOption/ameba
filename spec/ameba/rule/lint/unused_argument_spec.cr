@@ -6,7 +6,7 @@ module Ameba::Rule::Lint
 
   describe UnusedArgument do
     it "doesn't report if arguments are used" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def method(a, b, c)
           a + b + c
         end
@@ -16,8 +16,7 @@ module Ameba::Rule::Lint
         end
 
         ->(i : Int32) { i + 1 }
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if method argument is unused" do
@@ -69,50 +68,45 @@ module Ameba::Rule::Lint
     end
 
     it "doesn't report if it is an instance var argument" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         class A
           def method(@name)
           end
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if a typed argument is used" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def method(x : Int32)
           3.times do
             puts x
           end
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if an argument with default value is used" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def method(x = 1)
           puts x
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if argument starts with a _" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def method(_x)
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if it is a block and used" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def method(&block)
           block.call
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if block arg is not used" do
@@ -133,29 +127,27 @@ module Ameba::Rule::Lint
     end
 
     it "doesn't report if variable is referenced implicitly" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         class Bar < Foo
           def method(a, b)
             super
           end
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if arg if referenced in case" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def foo(a)
           case a
           when /foo/
           end
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if enum in a record" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         class Class
           record Record do
             enum Enum
@@ -163,8 +155,7 @@ module Ameba::Rule::Lint
             end
           end
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     context "super" do
@@ -197,25 +188,23 @@ module Ameba::Rule::Lint
 
     context "macro" do
       it "doesn't report if it is a used macro argument" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           macro my_macro(arg)
             {% arg %}
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if it is a used macro block argument" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           macro my_macro(&block)
             {% block %}
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report used macro args with equal names in record" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           record X do
             macro foo(a, b)
               {{a}} + {{b}}
@@ -225,12 +214,11 @@ module Ameba::Rule::Lint
               {{a}} + {{b}} + {{c}}
             end
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report used args in macro literals" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def print(f : Array(U)) forall U
             f.size.times do |i|
               {% if U == Float64 %}
@@ -240,8 +228,7 @@ module Ameba::Rule::Lint
               {% end %}
             end
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -249,11 +236,10 @@ module Ameba::Rule::Lint
       describe "#ignore_defs" do
         it "lets the rule to ignore def scopes if true" do
           subject.ignore_defs = true
-          s = Source.new %(
+          expect_no_issues subject, <<-CRYSTAL
             def method(a)
             end
-          )
-          subject.catch(s).should be_valid
+            CRYSTAL
         end
 
         it "lets the rule not to ignore def scopes if false" do
@@ -269,10 +255,9 @@ module Ameba::Rule::Lint
       context "#ignore_blocks" do
         it "lets the rule to ignore block scopes if true" do
           subject.ignore_blocks = true
-          s = Source.new %(
+          expect_no_issues subject, <<-CRYSTAL
             3.times { |i| puts "yo!" }
-          )
-          subject.catch(s).should be_valid
+            CRYSTAL
         end
 
         it "lets the rule not to ignore block scopes if false" do
@@ -287,10 +272,9 @@ module Ameba::Rule::Lint
       context "#ignore_procs" do
         it "lets the rule to ignore proc scopes if true" do
           subject.ignore_procs = true
-          s = Source.new %(
+          expect_no_issues subject, <<-CRYSTAL
             ->(a : Int32) {}
-          )
-          subject.catch(s).should be_valid
+            CRYSTAL
         end
 
         it "lets the rule not to ignore proc scopes if false" do

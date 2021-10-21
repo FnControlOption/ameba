@@ -13,7 +13,7 @@ module Ameba
 
   describe Rule::Lint::EmptyExpression do
     it "passes if there is no empty expression" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def method()
         end
 
@@ -30,8 +30,7 @@ module Ameba
 
         begin "" end
         [nil] << nil
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it_detects_empty_expression %(())
@@ -96,7 +95,7 @@ module Ameba
     )
 
     it "does not report empty expression in macro" do
-      s = Source.new %q(
+      expect_no_issues subject, <<-'CRYSTAL'
         module MyModule
           macro conditional_error_for_inline_callbacks
             \{%
@@ -107,8 +106,7 @@ module Ameba
           macro before_save(x = nil)
           end
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports rule, location and message" do

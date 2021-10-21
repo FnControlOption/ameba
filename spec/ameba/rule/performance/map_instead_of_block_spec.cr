@@ -5,11 +5,10 @@ module Ameba::Rule::Performance
 
   describe MapInsteadOfBlock do
     it "passes if there is no potential performance improvements" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         (1..3).sum(&.*(2))
         (1..3).product(&.*(2))
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is map followed by sum without a block" do
@@ -20,10 +19,9 @@ module Ameba::Rule::Performance
     end
 
     it "does not report if source is a spec" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         (1..3).map(&.to_s).join
-      ), "source_spec.cr"
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is map followed by sum without a block (with argument)" do
@@ -42,10 +40,9 @@ module Ameba::Rule::Performance
 
     context "macro" do
       it "doesn't report in macro scope" do
-        source = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           {{ [1, 2, 3].map(&.to_u64).sum }}
-        )
-        subject.catch(source).should be_valid
+          CRYSTAL
       end
     end
 

@@ -5,17 +5,15 @@ module Ameba::Rule::Lint
     subject = UnneededDisableDirective.new
 
     it "passes if there are no comments" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         a = 1
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "passes if there is disable directive" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         a = 1 # my super var
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if there is disable directive and it is needed" do

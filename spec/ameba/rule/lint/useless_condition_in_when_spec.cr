@@ -5,15 +5,14 @@ module Ameba::Rule::Lint
 
   describe UselessConditionInWhen do
     it "passes if there is not useless condition" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         case
         when utc?
           io << " UTC"
         when local?
           Format.new(" %:z").format(self, io) if utc?
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "fails if there is useless if condition" do

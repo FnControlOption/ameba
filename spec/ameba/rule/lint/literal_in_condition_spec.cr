@@ -5,7 +5,7 @@ module Ameba::Rule::Lint
 
   describe LiteralInCondition do
     it "passes if there is not literals in conditional" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         if a == 2
           :ok
         end
@@ -22,8 +22,7 @@ module Ameba::Rule::Lint
         unless a.nil?
           :ok
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "fails if there is a predicate in if conditional" do
@@ -54,11 +53,10 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report range with non-literals" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           case (1..a)
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -76,7 +74,7 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report array with non-literals" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           a, b = 1, 2
           case [1, 2, a]
           when :array
@@ -84,8 +82,7 @@ module Ameba::Rule::Lint
           when :not_array
             :also_ok
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -101,23 +98,21 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report hash with non-literals in keys" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           case { a => 1, 33 => 'b' }
           when :hash
             :ok
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report hash with non-literals in values" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           case { "name" => a, 33 => 'b' }
           when :hash
             :ok
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -133,14 +128,13 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report tuple with non-literals" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           a, b = 1, 2
           case {1, b}
           when {1, 2}
             :ok
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -154,11 +148,10 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report named tuple with non-literals" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           case { name: a, foo: :bar}
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 

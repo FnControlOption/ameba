@@ -5,7 +5,7 @@ module Ameba::Rule::Performance
 
   describe SizeAfterFilter do
     it "passes if there is no potential performance improvements" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         [1, 2, 3].select { |e| e > 2 }
         [1, 2, 3].reject { |e| e < 2 }
         [1, 2, 3].count { |e| e > 2 && e.odd? }
@@ -13,8 +13,7 @@ module Ameba::Rule::Performance
 
         User.select("field AS name").count
         Company.select(:value).count
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is a select followed by size" do
@@ -25,10 +24,9 @@ module Ameba::Rule::Performance
     end
 
     it "does not report if source is a spec" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL, "source_spec.cr"
         [1, 2, 3].select { |e| e > 2 }.size
-      ), "source_spec.cr"
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is a reject followed by size" do
@@ -47,21 +45,19 @@ module Ameba::Rule::Performance
 
     context "properties" do
       it "allows to configure object caller names" do
-        source = Source.new %(
-          [1, 2, 3].reject(&.empty?).size
-        )
         rule = Rule::Performance::SizeAfterFilter.new
         rule.filter_names = %w(select)
-        rule.catch(source).should be_valid
+        expect_no_issues rule, <<-CRYSTAL
+          [1, 2, 3].reject(&.empty?).size
+          CRYSTAL
       end
     end
 
     context "macro" do
       it "doesn't report in macro scope" do
-        source = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           {{[1, 2, 3].select { |v| v > 1 }.size}}
-        )
-        subject.catch(source).should be_valid
+          CRYSTAL
       end
     end
 

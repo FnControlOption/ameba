@@ -20,46 +20,42 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if there is return in if" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             a = 1
             return false if bar
             b = 2
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if there are returns in if-then-else" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           if a > 0
             return :positive
           else
             return :negative
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if there is no else in if" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           if a > 0
             return :positive
           end
           :reachable
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report return in on-line if" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           return :positive if a > 0
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if return is used in a block" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             bar = obj.try do
               if something
@@ -70,8 +66,7 @@ module Ameba::Rule::Lint
 
             bar
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "reports if there is unreachable code after if-then-else" do
@@ -111,7 +106,7 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if there is no unreachable code after if-then-else" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             if a > 0
               return :positive
@@ -119,12 +114,11 @@ module Ameba::Rule::Lint
               return :negative
             end
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if there is no unreachable in inner branch" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             if a > 0
               return :positive if a != 1
@@ -134,23 +128,21 @@ module Ameba::Rule::Lint
 
             :not_unreachable
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if there is no unreachable in exception handler" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             puts :bar
           rescue Exception
             raise "Error!"
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if there is multiple conditions with return" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           if :foo
             if :bar
               return :foobar
@@ -162,8 +154,7 @@ module Ameba::Rule::Lint
           end
 
           return :reachable
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "reports if there is unreachable code after unless" do
@@ -182,14 +173,13 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if there is no unreachable code after unless" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           unless :foo
             return :bar
           end
 
           :reachable
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -226,17 +216,15 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if return is not the right" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           puts "a" && return
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report unreachable code in multiple binary expressions" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           foo || bar || baz
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -264,7 +252,7 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if case does not have else" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             case cond
             when 1
@@ -276,12 +264,11 @@ module Ameba::Rule::Lint
             end
             :reachable
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if one when does not return" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             case cond
             when 1
@@ -295,8 +282,7 @@ module Ameba::Rule::Lint
             end
             :reachable
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -340,7 +326,7 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if there is no else and ensure doesn't return" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             begin
               return false
@@ -351,12 +337,11 @@ module Ameba::Rule::Lint
             end
             :reachable
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if there is no else and body doesn't return" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             begin
               do_something
@@ -367,12 +352,11 @@ module Ameba::Rule::Lint
             end
             :reachable
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if there is else and ensure doesn't return" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             begin
               do_something
@@ -383,12 +367,11 @@ module Ameba::Rule::Lint
             end
             :reachable
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if there is else and it doesn't return" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo
             begin
               do_something
@@ -399,8 +382,7 @@ module Ameba::Rule::Lint
             end
             :reachable
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "reports if there is unreachable code in rescue" do
@@ -455,14 +437,12 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if there is reachable code after while with break" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           while something
             break
           end
           :reachable
-        )
-
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -484,15 +464,13 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if there is no unreachable code in rescue" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           begin
 
           rescue e
             raise e
           end
-        )
-
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -515,15 +493,13 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if there is no unreachable code in when" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           case
           when valid?
             return 22
           else
           end
-        )
-
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -544,14 +520,13 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if break is in a condition" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           a = -100
           while true
             break if a > 0
             a += 1
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -571,7 +546,7 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if next is in a condition" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           a = 1
           while a < 5
             if a == 3
@@ -579,8 +554,7 @@ module Ameba::Rule::Lint
             end
             puts a
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -598,12 +572,11 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if raise is in a condition" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           a = 1
           raise "exception" if a > 0
           b = 2
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -633,12 +606,11 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if exit is in a condition" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           a = 1
           exit if a > 0
           b = 2
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 
@@ -668,12 +640,11 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if abort is in a condition" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           a = 1
           abort "abort" if a > 0
           b = 2
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 

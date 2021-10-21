@@ -5,10 +5,9 @@ module Ameba::Rule::Lint
     subject = RedundantStringCoercion.new
 
     it "does not report if there is no redundant string coersion" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         "Hello, #{name}"
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is a redundant string coersion" do
@@ -19,10 +18,9 @@ module Ameba::Rule::Lint
     end
 
     it "does not report if coersion is used in binary op" do
-      s = Source.new %q(
+      expect_no_issues subject, <<-'CRYSTAL'
         "Hello, #{3.to_s + 's'}"
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if coercion is used with symbol literals" do
@@ -53,24 +51,21 @@ module Ameba::Rule::Lint
     end
 
     it "doesn't report if Object#to_s is called with arguments" do
-      s = Source.new %q(
+      expect_no_issues subject, <<-'CRYSTAL'
         /\w #{name.to_s(io)}/
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if Object#to_s is called without receiver" do
-      s = Source.new %q(
+      expect_no_issues subject, <<-'CRYSTAL'
         /\w #{to_s}/
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if Object#to_s is called with named args" do
-      s = Source.new %q(
+      expect_no_issues subject, <<-'CRYSTAL'
         "0x#{250.to_s base: 16}"
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports rule, location and message" do

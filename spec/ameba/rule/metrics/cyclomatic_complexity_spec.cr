@@ -19,11 +19,10 @@ module Ameba::Rule::Metrics
 
   describe CyclomaticComplexity do
     it "passes for empty methods" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def hello
         end
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports one issue for a complex method" do

@@ -5,12 +5,11 @@ module Ameba::Rule::Lint
     subject = RedundantWithObject.new
 
     it "does not report if there is index argument" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         collection.each_with_object(0) do |e, obj|
           obj += i
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is not index argument" do
@@ -41,28 +40,25 @@ module Ameba::Rule::Lint
     end
 
     it "does not report if there is no block" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         collection.each_with_object(0)
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "does not report if first argument is underscored" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         collection.each_with_object(0) do |_, obj|
           puts i
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "does not report if there are more than 2 args" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         tup.each_with_object(0) do |key, value, obj|
           puts i
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports rule, location and message" do

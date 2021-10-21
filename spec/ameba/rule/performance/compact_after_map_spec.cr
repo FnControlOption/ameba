@@ -5,17 +5,15 @@ module Ameba::Rule::Performance
 
   describe CompactAfterMap do
     it "passes if there is no potential performance improvements" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         (1..3).compact_map(&.itself)
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "passes if there is map followed by a bang call" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         (1..3).map(&.itself).compact!
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is map followed by compact call" do
@@ -26,18 +24,16 @@ module Ameba::Rule::Performance
     end
 
     it "does not report if source is a spec" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL, "source_spec.cr"
         (1..3).map(&.itself).compact
-      ), "source_spec.cr"
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     context "macro" do
       it "doesn't report in macro scope" do
-        source = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           {{ [1, 2, 3].map(&.to_s).compact }}
-        )
-        subject.catch(source).should be_valid
+          CRYSTAL
       end
     end
 

@@ -5,12 +5,11 @@ module Ameba::Rule::Lint
     subject = RandZero.new
 
     it "passes if it is not rand(1) or rand(0)" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         rand(1.0)
         rand(0.11)
         rand(2)
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "fails if it is rand(0)" do

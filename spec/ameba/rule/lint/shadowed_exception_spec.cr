@@ -11,7 +11,7 @@ module Ameba::Rule::Lint
     subject = ShadowedException.new
 
     it "passes if there isn't shadowed exception" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def method
           do_something
         rescue ArgumentError
@@ -31,8 +31,7 @@ module Ameba::Rule::Lint
         rescue e : Exception
           handle_exception
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "fails if there is a shadowed exception" do

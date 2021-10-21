@@ -5,7 +5,7 @@ module Ameba::Rule::Lint
     subject = ShadowedArgument.new
 
     it "doesn't report if there is not a shadowed argument" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def foo(bar)
           baz = 1
         end
@@ -17,8 +17,7 @@ module Ameba::Rule::Lint
         proc = -> (a : Int32) {
           b = 2
         }
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is a shadowed method argument" do
@@ -51,34 +50,31 @@ module Ameba::Rule::Lint
     end
 
     it "doesn't report if the argument is referenced before the assignment" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def foo(bar)
           bar
           bar = 1
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if the argument is conditionally reassigned" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def foo(bar = nil)
           bar ||= true
           bar
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "doesn't report if the op assign is followed by another assignment" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def foo(bar)
           bar ||= 3
           bar = 43
           bar
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if the shadowing assignment is followed by op assign" do
@@ -93,11 +89,10 @@ module Ameba::Rule::Lint
     end
 
     it "doesn't report if the argument is unused" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def foo(bar)
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if the argument is shadowed before super" do
@@ -112,13 +107,12 @@ module Ameba::Rule::Lint
 
     context "branch" do
       it "doesn't report if the argument is not shadowed in a condition" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo(bar, baz)
             bar = 1 if baz
             bar
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "reports if the argument is shadowed after the condition" do
@@ -135,15 +129,14 @@ module Ameba::Rule::Lint
       end
 
       it "doesn't report if the argument is conditionally assigned in a branch" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def foo(bar)
             if something
               bar ||= 22
             end
             bar
           end
-        )
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
     end
 

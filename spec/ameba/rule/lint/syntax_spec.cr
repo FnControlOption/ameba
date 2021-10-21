@@ -5,13 +5,12 @@ module Ameba::Rule::Lint
     subject = Syntax.new
 
     it "passes if there is no invalid syntax" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def hello
           puts "totally valid"
         rescue e: Exception
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "fails if there is an invalid syntax" do

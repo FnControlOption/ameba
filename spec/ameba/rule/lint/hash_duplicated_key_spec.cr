@@ -5,12 +5,11 @@ module Ameba::Rule::Lint
     subject = HashDuplicatedKey.new
 
     it "passes if there is no duplicated keys in a hash literals" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         h = {"a" => 1, :a => 2, "b" => 3}
         h = {"a" => 1, "b" => 2, "c" => {"a" => 3, "b" => 4}}
         h = {} of String => String
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "fails if there is a duplicated key in a hash literal" do

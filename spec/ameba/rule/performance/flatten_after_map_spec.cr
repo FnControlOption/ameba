@@ -5,10 +5,9 @@ module Ameba::Rule::Performance
 
   describe FlattenAfterMap do
     it "passes if there is no potential performance improvements" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         %w[Alice Bob].flat_map(&.chars)
-      )
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is map followed by flatten call" do
@@ -19,18 +18,16 @@ module Ameba::Rule::Performance
     end
 
     it "does not report is source is a spec" do
-      source = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL, "source_spec.cr"
         %w[Alice Bob].map(&.chars).flatten
-      ), "source_spec.cr"
-      subject.catch(source).should be_valid
+        CRYSTAL
     end
 
     context "macro" do
       it "doesn't report in macro scope" do
-        source = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           {{ %w[Alice Bob].map(&.chars).flatten }}
-        )
-        subject.catch(source).should be_valid
+          CRYSTAL
       end
     end
 

@@ -5,14 +5,12 @@ module Ameba::Rule::Lint
     subject = SpecFocus.new
 
     it "does not report if spec is not focused" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         context "context" {}
         describe "describe" {}
         it "it" {}
         pending "pending" {}
-      ), path: "source_spec.cr"
-
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is a focused context" do
@@ -61,43 +59,35 @@ module Ameba::Rule::Lint
     end
 
     it "does not report if there is non spec block with :focus" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         some_method "foo", focus: true do
         end
-      ), path: "source_spec.cr"
-
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "does not report if there is a tagged item with :focus" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         it "foo", tags: "focus" do
         end
-      ), path: "source_spec.cr"
-
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "does not report if there are focused spec items without blocks" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         describe "foo", focus: true
         context "foo", focus: true
         it "foo", focus: true
         pending "foo", focus: true
-      ), path: "source_spec.cr"
-
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "does not report if there are focused items out of spec file" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         describe "foo", focus: true {}
         context "foo", focus: true {}
         it "foo", focus: true {}
         pending "foo", focus: true {}
-      )
-
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports rule, pos and message" do

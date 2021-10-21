@@ -5,7 +5,7 @@ module Ameba::Rule::Lint
     subject = EmptyEnsure.new
 
     it "passes if there is no empty ensure blocks" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         def some_method
           do_some_stuff
         ensure
@@ -23,8 +23,7 @@ module Ameba::Rule::Lint
         ensure
           nil
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "fails if there is an empty ensure in method" do

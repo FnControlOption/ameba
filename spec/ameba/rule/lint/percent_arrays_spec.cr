@@ -5,7 +5,7 @@ module Ameba::Rule::Lint
     subject = PercentArrays.new
 
     it "passes if percent arrays are written correctly" do
-      s = Source.new %q(
+      expect_no_issues subject, <<-'CRYSTAL'
         %i(one two three)
         %w(one two three)
 
@@ -14,8 +14,7 @@ module Ameba::Rule::Lint
 
         %i()
         %w()
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "fails if string percent array has commas" do
@@ -71,15 +70,13 @@ module Ameba::Rule::Lint
       it "allows to configure string_array_unwanted_symbols" do
         rule = PercentArrays.new
         rule.string_array_unwanted_symbols = ","
-        s = Source.new %( %w("one") )
-        rule.catch(s).should be_valid
+        expect_no_issues rule, %( %w("one") )
       end
 
       it "allows to configure symbol_array_unwanted_symbols" do
         rule = PercentArrays.new
         rule.symbol_array_unwanted_symbols = ","
-        s = Source.new %( %i(:one) )
-        rule.catch(s).should be_valid
+        expect_no_issues rule, %( %i(:one) )
       end
     end
   end

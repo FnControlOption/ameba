@@ -5,7 +5,7 @@ module Ameba::Rule::Lint
     subject = EmptyLoop.new
 
     it "does not report if there are not empty loops" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         a = 1
 
         while a < 10
@@ -19,8 +19,7 @@ module Ameba::Rule::Lint
         loop do
           a += 1
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is an empty while loop" do
@@ -33,13 +32,12 @@ module Ameba::Rule::Lint
     end
 
     it "doesn't report if while loop has non-literals in cond block" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         a = 1
         while a = gets.to_s
           # nothing here
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if there is an empty until loop" do
@@ -52,11 +50,10 @@ module Ameba::Rule::Lint
     end
 
     it "doesn't report if until loop has non-literals in cond block" do
-      s = Source.new %(
+      expect_no_issues subject, <<-CRYSTAL
         until socket_open?
         end
-      )
-      subject.catch(s).should be_valid
+        CRYSTAL
     end
 
     it "reports if there an empty loop" do
