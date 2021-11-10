@@ -6,17 +6,16 @@ module Ameba::Rule::Lint
   describe UnreachableCode do
     context "return" do
       it "reports if there is unreachable code after return" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           def foo
             a = 1
             return false
             b = 2
+          # ^^^^^ error: Unreachable code detected
           end
-        )
-        subject.catch(s).should_not be_valid
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":4:3"
+        expect_no_corrections source
       end
 
       it "doesn't report if there is return in if" do
@@ -70,7 +69,7 @@ module Ameba::Rule::Lint
       end
 
       it "reports if there is unreachable code after if-then-else" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           def foo
             if a > 0
               return :positive
@@ -79,15 +78,15 @@ module Ameba::Rule::Lint
             end
 
             :unreachable
+          # ^^^^^^^^^^^^ error: Unreachable code detected
           end
-        )
-        subject.catch(s).should_not be_valid
-        issue = s.issues.first
-        issue.location.to_s.should eq ":8:3"
+          CRYSTAL
+
+        expect_no_corrections source
       end
 
       it "reports if there is unreachable code after if-then-else-if" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           def foo
             if a > 0
               return :positive
@@ -98,11 +97,11 @@ module Ameba::Rule::Lint
             end
 
             :unreachable
+          # ^^^^^^^^^^^^ error: Unreachable code detected
           end
-        )
-        subject.catch(s).should_not be_valid
-        issue = s.issues.first
-        issue.location.to_s.should eq ":10:3"
+          CRYSTAL
+
+        expect_no_corrections source
       end
 
       it "doesn't report if there is no unreachable code after if-then-else" do
@@ -158,7 +157,7 @@ module Ameba::Rule::Lint
       end
 
       it "reports if there is unreachable code after unless" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           unless :foo
             return :bar
           else
@@ -166,10 +165,10 @@ module Ameba::Rule::Lint
           end
 
           :unreachable
-        )
-        subject.catch(s).should_not be_valid
-        issue = s.issues.first
-        issue.location.to_s.should eq ":7:1"
+          # ^^^^^^^^^^ error: Unreachable code detected
+          CRYSTAL
+
+        expect_no_corrections source
       end
 
       it "doesn't report if there is no unreachable code after unless" do
@@ -185,34 +184,32 @@ module Ameba::Rule::Lint
 
     context "binary op" do
       it "reports unreachable code in a binary operator" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           (return 22) && puts "a"
-        )
-        subject.catch(s).should_not be_valid
+                       # ^^^^^^^^ error: Unreachable code detected
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":1:16"
+        expect_no_corrections source
       end
 
       it "reports unreachable code in inner binary operator" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           do_something || (return 22) && puts "a"
-        )
-        subject.catch(s).should_not be_valid
+                                       # ^^^^^^^^ error: Unreachable code detected
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":1:32"
+        expect_no_corrections source
       end
 
       it "reports unreachable code after the binary op" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           (return 22) && break
+                       # ^^^^^ error: Unreachable code detected
           :unreachable
-        )
-        subject.catch(s).should_not be_valid
+          # ^^^^^^^^^^ error: Unreachable code detected
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":2:1"
+        expect_no_corrections source
       end
 
       it "doesn't report if return is not the right" do
@@ -230,7 +227,7 @@ module Ameba::Rule::Lint
 
     context "case" do
       it "reports if there is unreachable code after case" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           def foo
             case cond
             when 1
@@ -244,11 +241,11 @@ module Ameba::Rule::Lint
               return
             end
             :unreachable
+          # ^^^^^^^^^^^^ error: Unreachable code detected
           end
-        )
-        subject.catch(s).should_not be_valid
-        issue = s.issues.first
-        issue.location.to_s.should eq ":13:3"
+          CRYSTAL
+
+        expect_no_corrections source
       end
 
       it "doesn't report if case does not have else" do
@@ -288,7 +285,7 @@ module Ameba::Rule::Lint
 
     context "exception handler" do
       it "reports unreachable code if it returns in body and rescues" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           def foo
             begin
               return false
@@ -298,16 +295,15 @@ module Ameba::Rule::Lint
               return false
             end
             :unreachable
+          # ^^^^^^^^^^^^ error: Unreachable code detected
           end
-        )
-        subject.catch(s).should_not be_valid
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":9:3"
+        expect_no_corrections source
       end
 
       it "reports unreachable code if it returns in rescues and else" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           def foo
             begin
               do_something
@@ -317,12 +313,11 @@ module Ameba::Rule::Lint
               return true
             end
             :unreachable
+          # ^^^^^^^^^^^^ error: Unreachable code detected
           end
-        )
-        subject.catch(s).should_not be_valid
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":9:3"
+        expect_no_corrections source
       end
 
       it "doesn't report if there is no else and ensure doesn't return" do
@@ -386,24 +381,22 @@ module Ameba::Rule::Lint
       end
 
       it "reports if there is unreachable code in rescue" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           def method
           rescue
             return 22
             :unreachable
+          # ^^^^^^^^^^^^ error: Unreachable code detected
           end
-        )
+          CRYSTAL
 
-        subject.catch(s).should_not be_valid
-
-        issue = s.issues.first
-        issue.location.to_s.should eq ":4:3"
+        expect_no_corrections source
       end
     end
 
     context "while/until" do
       it "does not report if there is no unreachable code after while" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def method
             while something
               if :foo
@@ -414,13 +407,11 @@ module Ameba::Rule::Lint
             end
             :unreachable
           end
-        )
-
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "does not report if there is no unreachable code after until" do
-        s = Source.new %(
+        expect_no_issues subject, <<-CRYSTAL
           def method
             until something
               if :foo
@@ -431,9 +422,7 @@ module Ameba::Rule::Lint
             end
             :unreachable
           end
-        )
-
-        subject.catch(s).should be_valid
+          CRYSTAL
       end
 
       it "doesn't report if there is reachable code after while with break" do
@@ -448,19 +437,17 @@ module Ameba::Rule::Lint
 
     context "rescue" do
       it "reports unreachable code in rescue" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           begin
 
           rescue e
             raise e
             :unreachable
+          # ^^^^^^^^^^^^ error: Unreachable code detected
           end
-        )
+          CRYSTAL
 
-        subject.catch(s).should_not be_valid
-
-        issue = s.issues.first
-        issue.location.to_s.should eq ":5:3"
+        expect_no_corrections source
       end
 
       it "doesn't report if there is no unreachable code in rescue" do
@@ -476,20 +463,18 @@ module Ameba::Rule::Lint
 
     context "when" do
       it "reports unreachable code in when" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           case
           when valid?
             return 22
             :unreachable
+          # ^^^^^^^^^^^^ error: Unreachable code detected
           else
 
           end
-        )
+          CRYSTAL
 
-        subject.catch(s).should_not be_valid
-
-        issue = s.issues.first
-        issue.location.to_s.should eq ":4:3"
+        expect_no_corrections source
       end
 
       it "doesn't report if there is no unreachable code in when" do
@@ -505,18 +490,17 @@ module Ameba::Rule::Lint
 
     context "break" do
       it "reports if there is unreachable code after break" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           def foo
             loop do
               break
               a = 1
+            # ^^^^^ error: Unreachable code detected
             end
           end
-        )
-        subject.catch(s).should_not be_valid
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":4:5"
+        expect_no_corrections source
       end
 
       it "doesn't report if break is in a condition" do
@@ -532,17 +516,16 @@ module Ameba::Rule::Lint
 
     context "next" do
       it "reports if there is unreachable code after next" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           a = 1
           while a < 5
             next
             puts a
+          # ^^^^^^ error: Unreachable code detected
           end
-        )
-        subject.catch(s).should_not be_valid
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":4:3"
+        expect_no_corrections source
       end
 
       it "doesn't report if next is in a condition" do
@@ -560,15 +543,14 @@ module Ameba::Rule::Lint
 
     context "raise" do
       it "reports if there is unreachable code after raise" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           a = 1
           raise "exception"
           b = 2
-        )
-        subject.catch(s).should_not be_valid
+          # ^^^ error: Unreachable code detected
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":3:1"
+        expect_no_corrections source
       end
 
       it "doesn't report if raise is in a condition" do
@@ -582,27 +564,25 @@ module Ameba::Rule::Lint
 
     context "exit" do
       it "reports if there is unreachable code after exit without args" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           a = 1
           exit
           b = 2
-        )
-        subject.catch(s).should_not be_valid
+          # ^^^ error: Unreachable code detected
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":3:1"
+        expect_no_corrections source
       end
 
       it "reports if there is unreachable code after exit with exit code" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           a = 1
           exit 1
           b = 2
-        )
-        subject.catch(s).should_not be_valid
+          # ^^^ error: Unreachable code detected
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":3:1"
+        expect_no_corrections source
       end
 
       it "doesn't report if exit is in a condition" do
@@ -616,27 +596,25 @@ module Ameba::Rule::Lint
 
     context "abort" do
       it "reports if there is unreachable code after abort with one argument" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           a = 1
           abort "abort"
           b = 2
-        )
-        subject.catch(s).should_not be_valid
+          # ^^^ error: Unreachable code detected
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":3:1"
+        expect_no_corrections source
       end
 
       it "reports if there is unreachable code after abort with two args" do
-        s = Source.new %(
+        source = expect_issue subject, <<-CRYSTAL
           a = 1
           abort "abort", 1
           b = 2
-        )
-        subject.catch(s).should_not be_valid
+          # ^^^ error: Unreachable code detected
+          CRYSTAL
 
-        issue = s.issues.first
-        issue.location.to_s.should eq ":3:1"
+        expect_no_corrections source
       end
 
       it "doesn't report if abort is in a condition" do
