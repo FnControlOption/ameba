@@ -2,41 +2,31 @@ require "../../../spec_helper"
 
 module Ameba::Rule::Layout
   subject = LineLength.new
-  long_line = "*" * (subject.max_length + 1)
+  subject.max_length = 15
 
   describe LineLength do
     it "passes if all lines are shorter than MaxLength symbols" do
-      source = Source.new "short line"
-      subject.catch(source).should be_valid
+      expect_no_issues subject, "short line"
     end
 
     it "passes if line consists of MaxLength symbols" do
-      source = Source.new "*" * subject.max_length
-      subject.catch(source).should be_valid
+      expect_no_issues subject, "max length line"
     end
 
     it "fails if there is at least one line longer than MaxLength symbols" do
-      source = Source.new long_line
-      subject.catch(source).should_not be_valid
-    end
+      source = expect_issue subject, <<-CRYSTAL
+        extremely long line
+                     # ^ error: Line too long
+        CRYSTAL
 
-    it "reports rule, pos and message" do
-      source = Source.new long_line, "source.cr"
-      subject.catch(source).should_not be_valid
-
-      issue = source.issues.first
-      issue.rule.should eq subject
-      issue.location.to_s.should eq "source.cr:1:#{subject.max_length + 1}"
-      issue.end_location.should be_nil
-      issue.message.should eq "Line too long"
+      expect_no_corrections source
     end
 
     context "properties" do
       it "allows to configure max length of the line" do
-        source = Source.new long_line
         rule = LineLength.new
-        rule.max_length = long_line.size
-        rule.catch(source).should be_valid
+        rule.max_length = 20
+        expect_no_issues rule, "extremely long line"
       end
     end
   end
