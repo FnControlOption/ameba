@@ -6,13 +6,14 @@ module Ameba::Rule::Performance
 
     describe "#catch" do
       it "ignores spec files" do
-        source = Source.new("", "source_spec.cr")
-        subject.catch(source).should be_valid
+        expect_no_issues subject, "", "source_spec.cr"
       end
 
       it "reports perf issues for non-spec files" do
-        source = Source.new("", "source.cr")
-        subject.catch(source).should_not be_valid
+        expect_issue subject, <<-CRYSTAL
+
+          # ^{} error: Poor performance
+          CRYSTAL
       end
     end
   end
